@@ -51,7 +51,7 @@ CORS(app)
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     text = data.get("text", "").strip()
 
     if not text:

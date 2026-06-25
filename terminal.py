@@ -30,6 +30,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"🖥️  Cihaz: {device}")
 print(f"⬇️  Model yükleniyor: {MODEL_DIR}\n")
 
+if not os.path.exists(MODEL_DIR):
+    raise ValueError(f"Model klasörü bulunamadı: {MODEL_DIR}")
+
 tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR).to(device)
 model.eval()

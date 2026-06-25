@@ -1,6 +1,6 @@
 # Rusya-Ukrayna Savaşı Twitter Duygu Analizi
 
-![Proje afişi](tubıtak.jpg)
+![Proje afişi](tubitak.jpg)
 
 Bu repo, TÜBİTAK projemiz için hazırladığım Twitter duygu analizi çalışmasını içeriyor. Çalışmanın amacı, Rusya-Ukrayna savaşı hakkında atılan tweetleri duygu durumlarına göre sınıflandırmak.
 
@@ -22,7 +22,7 @@ Model tweetleri 5 sınıfa ayırıyor:
 - `terminal.py`: Terminalden tweet/metin girerek tahmin almaya yarar.
 - `site.html`: API'ye istek atan basit web arayüzü.
 - `cmodel.py`: İlk model eğitim dosyası.
-- `fın.py`: Türkçeye çevrilmiş veriyle ek fine-tuning dosyası.
+- `fine_tune.py`: Türkçeye çevrilmiş veriyle ek fine-tuning dosyası.
 - `translator.py`: İngilizce tweetleri Türkçeye çevirmek için kullandığım dosya.
 - `etiketleyenc.py`: VADER ve anahtar kelime tabanlı ilk etiketleme dosyası.
 - `requirements.txt`: Gerekli Python kütüphaneleri.
@@ -89,7 +89,7 @@ python cmodel.py
 Türkçeye çevrilmiş veriyle fine-tuning için:
 
 ```bash
-python fın.py
+python fine_tune.py
 ```
 
 Veri yolları dosyaların içinde varsayılan olarak `data/` klasörüne göre ayarlı. Gerekirse `INPUT_FILE`, `OUTPUT_FILE`, `BASE_MODEL`, `TR_DATA` ve `OUTPUT_DIR` değişkenleriyle farklı yollar verilebilir.

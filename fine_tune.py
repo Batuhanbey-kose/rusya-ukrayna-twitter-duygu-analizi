@@ -145,5 +145,5 @@ for epoch in range(1, EPOCHS + 1):
 
 print("✅ Fine-tuning tamamlandı!")
 print(f"📁 Model: {OUTPUT_DIR}")
-print("\npredict.py'da MODEL_DIR'i şu şekilde güncelle:")
+print("\nTahmin için MODEL_DIR'i şu şekilde ayarla:")
 print(f'   MODEL_DIR = r"{OUTPUT_DIR}"')
