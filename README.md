@@ -1,8 +1,12 @@
 # Rusya-Ukrayna Savaşı Twitter Duygu Analizi
 
-Bu proje, Rusya-Ukrayna savaşıyla ilgili Twitter paylaşımlarının duygu sınıflandırmasını yapmak için geliştirilmiş bir Türkçe duygu analizi modelidir. Model, `xlm-roberta-base` mimarisi üzerine eğitilmiş/fine-tune edilmiştir.
+Bu repo, TÜBİTAK projemiz için hazırladığım Twitter duygu analizi çalışmasını içeriyor. Çalışmanın amacı, Rusya-Ukrayna savaşı hakkında atılan tweetleri duygu durumlarına göre sınıflandırmak.
 
-## Duygu Sınıfları
+Model tarafında `xlm-roberta-base` kullandım. Veri hazırlama, etiketleme, çeviri, eğitim ve tahmin işlemlerini ayrı Python dosyaları halinde tuttum. Ayrıca modeli denemek için basit bir Flask API ve web arayüzü de ekledim.
+
+## Sınıflar
+
+Model tweetleri 5 sınıfa ayırıyor:
 
 - `mutlu`
 - `uzgun`
@@ -10,17 +14,20 @@ Bu proje, Rusya-Ukrayna savaşıyla ilgili Twitter paylaşımlarının duygu sı
 - `saskin`
 - `notr`
 
-## Proje Dosyaları
+## Dosyalar
 
-- `api.py`: Flask API ile `/predict` endpoint'i üzerinden tahmin yapar.
-- `terminal.py`: Terminalden metin girerek duygu tahmini yapar.
-- `site.html`: API'ye bağlanan basit web arayüzü.
-- `cmodel.py`: İlk model eğitim scripti.
-- `fın.py`: Türkçe çeviri verisiyle fine-tuning scripti.
-- `translator.py`: İngilizce tweetleri Türkçeye çevirme scripti.
-- `etiketleyenc.py`: VADER + anahtar kelime tabanlı etiketleme scripti.
+- `api.py`: Eğitilmiş modeli Flask API olarak çalıştırır.
+- `terminal.py`: Terminalden tweet/metin girerek tahmin almaya yarar.
+- `site.html`: API'ye istek atan basit web arayüzü.
+- `cmodel.py`: İlk model eğitim dosyası.
+- `fın.py`: Türkçeye çevrilmiş veriyle ek fine-tuning dosyası.
+- `translator.py`: İngilizce tweetleri Türkçeye çevirmek için kullandığım dosya.
+- `etiketleyenc.py`: VADER ve anahtar kelime tabanlı ilk etiketleme dosyası.
+- `requirements.txt`: Gerekli Python kütüphaneleri.
 
 ## Kurulum
+
+Önce sanal ortam oluşturup gerekli kütüphaneleri kurmak gerekiyor:
 
 ```bash
 python -m venv .venv
@@ -28,110 +35,63 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Linux/macOS için sanal ortam aktivasyonu:
+Linux/macOS kullanılıyorsa aktivasyon komutu:
 
 ```bash
 source .venv/bin/activate
 ```
 
-## Model Dosyaları
+## Model Klasörü
 
-Model ağırlıkları büyük olduğu için GitHub'a eklenmemelidir. Model dosyalarını Hugging Face Model Hub'a yüklemek daha uygundur.
+Model dosyaları büyük olduğu için bu repoya eklemedim. Model Hugging Face tarafında paylaşılacak.
 
-Yerel çalıştırma için model klasörü varsayılan olarak şu konumda beklenir:
+Varsayılan model yolu:
 
 ```text
 models/sentiment_model_v2
 ```
 
-Alternatif olarak farklı model yolu vermek için:
-
-```bash
-set MODEL_DIR=models/sentiment_model_v2
-python api.py
-```
-
-PowerShell kullanıyorsanız:
+Farklı bir model klasörü kullanılacaksa PowerShell'de şöyle verilebilir:
 
 ```powershell
 $env:MODEL_DIR="models/sentiment_model_v2"
 python api.py
 ```
 
-## API Kullanımı
-
-API'yi başlatmak için:
+## API ile Çalıştırma
 
 ```bash
 python api.py
 ```
 
-Sağlık kontrolü:
-
-```bash
-curl http://localhost:5000/health
-```
-
-Tahmin isteği örneği:
+API çalıştıktan sonra örnek istek:
 
 ```bash
 curl -X POST http://localhost:5000/predict -H "Content-Type: application/json" -d "{\"text\":\"Bugün savaşla ilgili çok üzücü haberler var.\"}"
 ```
 
-## Terminalden Tahmin
+## Terminalden Deneme
 
 ```bash
 python terminal.py
 ```
 
-## Eğitim
+## Eğitim Dosyaları
 
-Etiketlenmiş veriyle ilk eğitimi başlatmak için:
+İlk eğitim için:
 
 ```bash
 python cmodel.py
 ```
 
-Türkçeye çevrilmiş veriyle fine-tuning yapmak için:
+Türkçeye çevrilmiş veriyle fine-tuning için:
 
 ```bash
 python fın.py
 ```
 
-Scriptler varsayılan olarak `data/` klasöründeki veri dosyalarını kullanır. Gerekirse `INPUT_FILE`, `OUTPUT_FILE`, `BASE_MODEL`, `TR_DATA` ve `OUTPUT_DIR` ortam değişkenleriyle yollar değiştirilebilir.
-
-## GitHub'a Ne Yüklenmeli?
-
-GitHub'a yüklenmesi önerilenler:
-
-- Kod dosyaları (`.py`, `.html`)
-- `README.md`
-- `requirements.txt`
-- `.gitignore`
-- Küçük örnek veri dosyası varsa anonimleştirilmiş örnek veri
-
-GitHub'a yüklenmemesi önerilenler:
-
-- Büyük model ağırlıkları (`model.safetensors`)
-- Büyük ham veri dosyaları
-- Twitter kullanıcı bilgisi veya kişisel veri içeren dosyalar
-- API anahtarı, token veya gizli bilgiler
-
-## Hugging Face'e Ne Yüklenmeli?
-
-Hugging Face Model Hub'a yüklenmesi önerilen model klasörü:
-
-```text
-models/sentiment_model_v2/
-```
-
-Bu klasörde genelde şu dosyalar bulunur:
-
-- `config.json`
-- `tokenizer.json`
-- `tokenizer_config.json`
-- `model.safetensors`
+Veri yolları dosyaların içinde varsayılan olarak `data/` klasörüne göre ayarlı. Gerekirse `INPUT_FILE`, `OUTPUT_FILE`, `BASE_MODEL`, `TR_DATA` ve `OUTPUT_DIR` değişkenleriyle farklı yollar verilebilir.
 
 ## Not
 
-Veri setleri Twitter/X içerikleri barındırıyorsa paylaşmadan önce veri setinin lisansı, kaynak şartları ve kişisel veri içeriği kontrol edilmelidir. TÜBİTAK proje sunumu için ham veri yerine veri kaynağı, işleme adımları ve anonimleştirilmiş küçük örnek paylaşmak daha güvenlidir.
+Ham veri dosyalarını ve model ağırlıklarını repoya koymadım. Hem dosyalar büyük olduğu için hem de Twitter/X verilerinde kullanıcı bilgisi bulunabileceği için bunları ayrı tutmak daha doğru oldu.
