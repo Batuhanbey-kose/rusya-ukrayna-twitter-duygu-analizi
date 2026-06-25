@@ -1,0 +1,12 @@
+flask
+flask-cors
+torch
+transformers
+pandas
+numpy
+scikit-learn
+tqdm
+nltk
+sentencepiece
+sacremoses
+openpyxl

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# Large model outputs - upload these to Hugging Face instead
+models/
+sentiment_model/
+sentiment_model_v2/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Datasets and generated outputs
+data/
+veriler/
+*.csv
+*.xlsx
+*.xls
+
+# Local experiment outputs
+runs/
+outputs/
+checkpoints/

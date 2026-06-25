@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DuyguAI — Türkçe Duygu Analizi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6c63ff;
+    --accent2: #ff6b9d;
+    --accent3: #00d4aa;
+    --text: #f0f0f8;
+    --muted: rgba(240,240,248,0.45);
+    --mutlu: #ffd166;
+    --uzgun: #6bcaff;
+    --kizgin: #ff6b6b;
+    --saskin: #c77dff;
+    --notr: #8d99ae;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.18;
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+
+  .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -200px; }
+  .orb-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; right: -100px; animation-delay: -4s; }
+  .orb-3 { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 60%; animation-delay: -8s; }
+
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(40px,-40px) scale(1.1); }
+  }
+
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .wrapper {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    width: 100%; max-width: 860px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 64px;
+  }
+
+  .logo-group { display: flex; align-items: center; gap: 14px; }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 24px rgba(108,99,255,0.4);
+  }
+
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+
+  .badge {
+    background: rgba(108,99,255,0.12);
+    border: 1px solid rgba(108,99,255,0.3);
+    color: var(--accent);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 100px;
+  }
+
+  .hero { max-width: 720px; text-align: center; margin-bottom: 56px; }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 6vw, 64px);
+    line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px;
+  }
+
+  .hero h1 .gradient-text {
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .hero p { color: var(--muted); font-size: 18px; line-height: 1.65; font-weight: 300; }
+
+  .card {
+    width: 100%; max-width: 860px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px; padding: 40px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  .input-label {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 16px; display: block;
+  }
+
+  .textarea-wrap { position: relative; margin-bottom: 24px; }
+
+  textarea {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 16px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 17px; line-height: 1.7; padding: 24px;
+    resize: none; height: 160px;
+    transition: border-color 0.3s, box-shadow 0.3s; outline: none;
+  }
+
+  textarea::placeholder { color: var(--muted); }
+
+  textarea:focus {
+    border-color: rgba(108,99,255,0.5);
+    box-shadow: 0 0 0 4px rgba(108,99,255,0.08);
+  }
+
+  .char-count { position: absolute; bottom: 14px; right: 18px; font-size: 12px; color: var(--muted); }
+
+  .btn-analyze {
+    width: 100%; padding: 20px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border: none; border-radius: 14px;
+    color: #fff; font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 32px rgba(108,99,255,0.35);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+
+  .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(108,99,255,0.45); }
+  .btn-analyze:active { transform: translateY(0); }
+  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result-section {
+    margin-top: 32px;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.5s, transform 0.5s;
+    pointer-events: none;
+  }
+
+  .result-section.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+
+  .result-divider { height: 1px; background: var(--border); margin-bottom: 32px; }
+
+  .result-header {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 24px;
+  }
+
+  .emotion-display {
+    display: flex; align-items: center; gap: 24px; margin-bottom: 36px;
+    padding: 28px; background: var(--surface2);
+    border-radius: 18px; border: 1px solid var(--border);
+  }
+
+  .emotion-emoji {
+    font-size: 64px; line-height: 1;
+    animation: pulse-emoji 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-emoji { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+  .emotion-info { flex: 1; }
+
+  .emotion-name {
+    font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800;
+    letter-spacing: -1px; margin-bottom: 6px;
+  }
+
+  .emotion-confidence { font-size: 14px; color: var(--muted); font-weight: 300; }
+  .confidence-value { font-weight: 600; color: var(--text); }
+
+  .bars-grid { display: flex; flex-direction: column; gap: 14px; }
+
+  .bar-row { display: flex; align-items: center; gap: 14px; }
+
+  .bar-label { width: 70px; font-size: 13px; font-weight: 500; color: var(--muted); text-align: right; }
+
+  .bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; }
+
+  .bar-fill { height: 100%; border-radius: 100px; width: 0%; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+
+  .bar-pct { width: 42px; font-size: 12px; font-weight: 500; color: var(--muted); text-align: right; }
+
+  .bar-fill.mutlu  { background: linear-gradient(90deg, var(--mutlu), #ffb347); }
+  .bar-fill.uzgun  { background: linear-gradient(90deg, var(--uzgun), #4fc3f7); }
+  .bar-fill.kizgin { background: linear-gradient(90deg, var(--kizgin), #ff8a80); }
+  .bar-fill.saskin { background: linear-gradient(90deg, var(--saskin), #e040fb); }
+  .bar-fill.notr   { background: linear-gradient(90deg, var(--notr), #b0bec5); }
+
+  .emotion-name.mutlu  { color: var(--mutlu); }
+  .emotion-name.uzgun  { color: var(--uzgun); }
+  .emotion-name.kizgin { color: var(--kizgin); }
+  .emotion-name.saskin { color: var(--saskin); }
+  .emotion-name.notr   { color: var(--notr); }
+
+  .examples-section { width: 100%; max-width: 860px; margin-top: 40px; }
+
+  .examples-title {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  }
+
+  .examples-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+
+  .example-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px;
+    cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+
+  .example-chip:hover { background: var(--surface2); border-color: rgba(108,99,255,0.3); transform: translateY(-2px); }
+
+  .example-chip .chip-emoji { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .example-chip .chip-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .error-msg {
+    background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3);
+    color: #ff6b6b; border-radius: 12px; padding: 16px 20px;
+    font-size: 14px; margin-top: 16px; display: none;
+  }
+
+  footer { margin-top: 64px; text-align: center; color: var(--muted); font-size: 13px; }
+  footer strong { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .card { padding: 24px; }
+    .emotion-display { flex-direction: column; text-align: center; gap: 16px; }
+    .emotion-name { font-size: 28px; }
+    header { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<div class="wrapper">
+
+  <header>
+    <div class="logo-group">
+      <div class="logo-icon">🧠</div>
+      <div class="logo-text">Duygu<span>AI</span></div>
+    </div>
+    <div class="badge">TÜBİTAK Projesi</div>
+  </header>
+
+  <div class="hero">
+    <h1>Tweet'inizin <span class="gradient-text">duygusunu</span> analiz edin</h1>
+    <p>Yapay zeka destekli modelimiz, tweet'inizdeki duyguyu anında tespit eder. Türkçe ve İngilizce desteklenir.</p>
+  </div>
+
+  <div class="card">
+    <label class="input-label">Tweet Metni</label>
+    <div class="textarea-wrap">
+      <textarea id="tweetInput" placeholder="Tweet metninizi buraya yazın..." maxlength="500"></textarea>
+      <span class="char-count" id="charCount">0 / 500</span>
+    </div>
+
+    <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">✨ Duyguyu Analiz Et</span>
+    </button>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="result-section" id="resultSection">
+      <div class="result-divider"></div>
+      <div class="result-header">Analiz Sonucu</div>
+
+      <div class="emotion-display">
+        <div class="emotion-emoji" id="resultEmoji">😊</div>
+        <div class="emotion-info">
+          <div class="emotion-name" id="resultName">mutlu</div>
+          <div class="emotion-confidence">
+            Güven skoru: <span class="confidence-value" id="resultConf">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bars-grid" id="barsGrid"></div>
+    </div>
+  </div>
+
+  <div class="examples-section">
+    <div class="examples-title">Örnek Tweetler</div>
+    <div class="examples-grid">
+      <div class="example-chip" onclick="fillExample(this.querySelector('.chip-text').innerText)">
+        <span class="chip-emoji">😊</span>
+        <span class="chip-text">Askerlerimiz şehri kurtardı! Gurur duyuyorum, harika bir zafer!</span>
+      </div>
+      <div class="example-chip" onclick="fillExample(this.querySelector('.chip-text').innerText)">
+        <span class="chip-emoji">😢</span>
+        <span class="chip-text">Masum sivillerin hayatını kaybettiğini duymak çok üzücü, ailelerine başsağlığı diliyorum.</span>
+      </div>
+      <div class="example-chip" onclick="fillExample(this.querySelector('.chip-text').innerText)">
+        <span class="chip-emoji">😡</span>
+        <span class="chip-text">Bu bir savaş suçu! Bu alçaklar masum insanları bombalıyor, iğrenç!</span>
+      </div>
+      <div class="example-chip" onclick="fillExample(this.querySelector('.chip-text').innerText)">
+        <span class="chip-emoji">😲</span>
+        <span class="chip-text">BREAKING: Russian forces just crossed the border unexpectedly. Can't believe this!</span>
+      </div>
+      <div class="example-chip" onclick="fillExample(this.querySelector('.chip-text').innerText)">
+        <span class="chip-emoji">😐</span>
+        <span class="chip-text">Ukrayna ordusu doğu cephesinde mevzi tutmaya devam ediyor.</span>
+      </div>
+      <div class="example-chip" onclick="fillExample(this.querySelector('.chip-text').innerText)">
+        <span class="chip-emoji">😊</span>
+        <span class="chip-text">Our soldiers liberated the city! Amazing victory, so proud of them!</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Geliştiren: <strong>TÜBİTAK Araştırma Ekibi</strong> &nbsp;·&nbsp; XLM-RoBERTa tabanlı çok dilli duygu analizi</p>
+  </footer>
+
+</div>
+
+<script>
+  const API_URL  = "http://localhost:5000/predict";
+  const LABEL_MAP = { mutlu: "Mutlu", uzgun: "Üzgün", kizgin: "Kızgın", saskin: "Şaşkın", notr: "Nötr" };
+
+  document.getElementById('tweetInput').addEventListener('input', function() {
+    document.getElementById('charCount').textContent = this.value.length + ' / 500';
+  });
+
+  function fillExample(text) {
+    const ta = document.getElementById('tweetInput');
+    ta.value = text;
+    document.getElementById('charCount').textContent = text.length + ' / 500';
+    ta.focus();
+  }
+
+  async function analyze() {
+    const text = document.getElementById('tweetInput').value.trim();
+    if (!text) return;
+
+    const btn      = document.getElementById('analyzeBtn');
+    const spinner  = document.getElementById('spinner');
+    const btnText  = document.getElementById('btnText');
+    const errorMsg = document.getElementById('errorMsg');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'Analiz ediliyor...';
+    errorMsg.style.display = 'none';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      if (!res.ok) throw new Error("API hatası");
+
+      const result = await res.json();
+      showResult(result);
+
+    } catch (err) {
+      errorMsg.textContent = '❌ API\'ye bağlanılamadı. api.py çalışıyor mu? (python api.py)';
+      errorMsg.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = '✨ Duyguyu Analiz Et';
+    }
+  }
+
+  function showResult(result) {
+    const etiket = result.etiket;
+    const skorlar = result.skorlar;
+
+    document.getElementById('resultEmoji').textContent = result.emoji;
+    const nameEl = document.getElementById('resultName');
+    nameEl.textContent = LABEL_MAP[etiket] || etiket;
+    nameEl.className = 'emotion-name ' + etiket;
+    document.getElementById('resultConf').textContent = result.guven + '%';
+
+    const grid  = document.getElementById('barsGrid');
+    grid.innerHTML = '';
+    const order = ['mutlu', 'uzgun', 'kizgin', 'saskin', 'notr'];
+
+    order.forEach(key => {
+      const pct = skorlar[key] || 0;
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="bar-label">${LABEL_MAP[key]}</div>
+        <div class="bar-track"><div class="bar-fill ${key}" id="bar-${key}"></div></div>
+        <div class="bar-pct">${pct}%</div>
+      `;
+      grid.appendChild(row);
+    });
+
+    document.getElementById('resultSection').classList.add('visible');
+
+    setTimeout(() => {
+      order.forEach(key => {
+        const bar = document.getElementById('bar-' + key);
+        if (bar) bar.style.width = (skorlar[key] || 0) + '%';
+      });
+    }, 100);
+  }
+
+  document.getElementById('tweetInput').addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'Enter') analyze();
+  });
+</script>
+</body>
+</html>
