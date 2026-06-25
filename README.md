@@ -1,5 +1,7 @@
 # Rusya-Ukrayna Savaşı Twitter Duygu Analizi
 
+![Proje afişi](tubıtak.jpg)
+
 Bu repo, TÜBİTAK projemiz için hazırladığım Twitter duygu analizi çalışmasını içeriyor. Çalışmanın amacı, Rusya-Ukrayna savaşı hakkında atılan tweetleri duygu durumlarına göre sınıflandırmak.
 
 Model tarafında `xlm-roberta-base` kullandım. Veri hazırlama, etiketleme, çeviri, eğitim ve tahmin işlemlerini ayrı Python dosyaları halinde tuttum. Ayrıca modeli denemek için basit bir Flask API ve web arayüzü de ekledim.
